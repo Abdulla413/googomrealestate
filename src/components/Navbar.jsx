@@ -38,7 +38,7 @@ fill={pathMatchRoute('/offers') ?'#2c2c2c' : '#8f8f8f'}
 width='36px'
 hanging='36px'/>
 <p className={pathMatchRoute('/offers')?'navbarListItemNameActive':'navbarListItem' }>
-    Offer
+    Offers
 </p>
     </li>
     <li className='navbarListItem' onClick={()=>navigate('/profile')}>
