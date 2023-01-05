@@ -9,6 +9,7 @@ import homeIcon from '../assets/svg/homeIcon.svg';
 
 function Profile() {
 const  auth=getAuth();
+
 const  [changeDetails, setChangeDetails]=useState(false);
   const [ formData, setFormData ]=useState({
     name:auth.currentUser.displayName,
@@ -42,13 +43,14 @@ const  [changeDetails, setChangeDetails]=useState(false);
         toast.error("Could not Update profile details")
         
       }
-      console.log("i am here");
     }
 
     const onChange=(e)=>{
       setFormData(prevState=>({...prevState, [e.target.id]:e.target.value}))
 
     }
+
+    console.log(auth.userRef, 'i am here')
 
     return <div className='profile'>
     <header className='profileHeader'>

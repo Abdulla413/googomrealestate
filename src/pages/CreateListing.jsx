@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, userRef } from "react";
 import {getAuth, onAuthStateChanged} from 'firebase/auth';
 import {
   getStorage,
@@ -51,13 +51,13 @@ function CreateListing() {
 
     const auth = getAuth()
     const navigate = useNavigate()
-    const isMounted = useRef(true)
+    const isMounted = userRef(true)
 
     useEffect(()=>{
         if(isMounted){
             onAuthStateChanged(auth, (user)=>{
                 if(user){
-                    setFormData({...formData, useRef:user.uid})
+                    setFormData({...formData, userRef:user.uid})
                 }else{
                     navigate('/sign-in')
                 }
