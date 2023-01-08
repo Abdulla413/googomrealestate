@@ -19,6 +19,7 @@ import ListingItem from "../components/ListingItem";
 function Offers() {
     const [ listings, setListings ] = useState(null)
     const [ loading, setLoading ] = useState(true)
+    const [ lastFechedListings, setLastFechedListings] = useState(null)
 
 
     const params=useParams()
@@ -39,7 +40,11 @@ function Offers() {
                     )
                     // Excute Query
 
-                const querySnap = await getDocs(q);
+                const querySnap = await getDocs(q); 
+                const lastVisible = querySnap.docs[querySnap.docs.length-1]
+                setLastFechedListings( lastVisible)
+
+
                 let listings = []
                 querySnap.forEach((doc)=>{
                     return listings.push({
@@ -57,6 +62,50 @@ function Offers() {
 
 fetchListings()
     }, [])
+
+
+  
+    // Pagination / Load More
+
+    const onFetchMoreListings = async ()=>{
+        try {
+            // Get reference
+            const listingsRef = collection(db, 'listings')
+
+            // Create a query
+
+            const q = query(
+                listingsRef,
+                where('offer', '==', true),
+                orderBy('timestamp', 'desc'),
+                startAfter(lastFechedListings), 
+                limit(10)
+                )
+                // Excute Query
+
+            const querySnap = await getDocs(q);
+
+            const lastVisible = querySnap.docs[querySnap.docs.length-1]
+            setLastFechedListings( lastVisible)
+
+
+            let listings = []
+            querySnap.forEach((doc)=>{
+                return listings.push({
+                    id:doc.id,
+                    data:doc.data(),
+                })
+            })
+            setListings(listings)
+            setLoading(false)
+
+        } catch (error) {
+            toast.error('Could not fetch listings')                
+        }
+     }
+
+
+  
 
 
 
@@ -82,6 +131,13 @@ fetchListings()
 
                 </ul>
             </main>
+            <br/>
+            <br/>
+            {lastFechedListings && (<p className="loadMore" onClick={onFetchMoreListings}>
+            Load More
+
+            </p>
+            )}
         </>):(<p>There are no current offers</p>) }
     </div>
   )

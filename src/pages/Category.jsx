@@ -19,6 +19,7 @@ import ListingItem from "../components/ListingItem";
 function Category() {
     const [ listings, setListings ] = useState(null)
     const [ loading, setLoading ] = useState(true)
+    const [ lastFechedListings, setLastFechedListings] = useState(null)
 
 
     const params=useParams()
@@ -40,6 +41,11 @@ function Category() {
                     // Excute Query
 
                 const querySnap = await getDocs(q);
+
+                const lastVisible = querySnap.docs[querySnap.docs.length-1]
+                setLastFechedListings( lastVisible)
+
+
                 let listings = []
                 querySnap.forEach((doc)=>{
                     return listings.push({
@@ -57,6 +63,47 @@ function Category() {
 
 fetchListings()
     }, [params.categoryName])
+
+
+    // Pagination / Load More
+
+    const onFetchMoreListings = async ()=>{
+        try {
+            // Get reference
+            const listingsRef = collection(db, 'listings')
+
+            // Create a query
+
+            const q = query(
+                listingsRef,
+                where('type', '==', params.categoryName),
+                orderBy('timestamp', 'desc'),
+                startAfter(lastFechedListings), 
+                limit(10)
+                )
+                // Excute Query
+
+            const querySnap = await getDocs(q);
+
+            const lastVisible = querySnap.docs[querySnap.docs.length-1]
+            setLastFechedListings( lastVisible)
+
+
+            let listings = []
+            querySnap.forEach((doc)=>{
+                return listings.push({
+                    id:doc.id,
+                    data:doc.data(),
+                })
+            })
+            setListings(listings)
+            setLoading(false)
+
+        } catch (error) {
+            toast.error('Could not fetch listings')                
+        }
+     }
+
 
 
 
@@ -84,6 +131,7 @@ fetchListings()
 
                 </ul>
             </main>
+            
         </>):(<p>No listings for {params.categoryName}</p>) }
     </div>
   )

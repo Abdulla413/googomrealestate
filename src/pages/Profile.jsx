@@ -12,11 +12,14 @@ import {
   deleteDoc,
 } from 'firebase/firestore'
 
+import ListingItem from '../components/ListingItem';
+
 import { db } from '../firebase.config';
 import { toast } from 'react-toastify';
 import arrowRight from '../assets/svg/keyboardArrowRightIcon.svg';
 import homeIcon from '../assets/svg/homeIcon.svg';
 import Spinner from '../components/Spinner'
+import { async } from '@firebase/util';
 
 function Profile() {
 
@@ -34,34 +37,36 @@ const [ loading, setLoading] = useState(true)
 const {name, email} = formData;
 const navigate =useNavigate();
 
+    
+useEffect(()=>{
 
-useEffect(() => {
-  const fetchUserListings = async () => {
-    const listingsRef = collection(db, 'listings')
+      const fetchUserListing = async()=>{
 
-    const q = query(
-      listingsRef,
-      where('userRef', '==', auth.currentUser.uid),
-      orderBy('timestamp', 'desc')
-    )
+        const listingsRef = collection(db, 'listings')
 
-    const querySnap = await getDocs(q)
+        const q = query(
+          listingsRef,
+          where('userRef', '==', auth.currentUser.uid),
+          orderBy('timestamp', 'desc'),
+          );
 
-    let listings = []
+        const querySnap= await getDocs(q);
+           
+        let listings=[];
 
-    querySnap.forEach((doc) => {
-      return listings.push({
-        id: doc.id,
-        data: doc.data(),
-      })
-    })
+        querySnap.forEach((doc)=>{
+          return listings.push({
+            id:doc.id,
+            data:doc.data(),
+          })
+        })
 
-    setListings(listings)
-    setLoading(false)
-  }
+        setListings(listings);
+        setLoading(false);
+      };
 
-  fetchUserListings()
-}, [auth.currentUser.uid])
+      fetchUserListing();
+    }, [auth.currentUser.uid])
 
 
 
@@ -92,6 +97,23 @@ useEffect(() => {
     const onChange=(e)=>{
       setFormData(prevState=>({...prevState, [e.target.id]:e.target.value}))
 
+    }
+
+    const onDelete = async ( listingId)=>{
+      if(window.confirm('Are you sure you want to delete?')){
+        await deleteDoc(doc(db, 'listings', listingId))
+        const updatedListings = listings.filter((listing)=>listing.id !== listingId )
+        setListings(updatedListings)
+        toast.success('Successfully deleted listing')
+      }
+
+
+      
+
+    }
+   
+    const onEdit = async (listingId)=>{
+      navigate(`/edit-listing/${listingId}`)
     }
 
 if(loading){
@@ -140,6 +162,25 @@ if(loading){
         <p>Sell or rent your home</p>
         <img src={arrowRight} alt='arrowright' />
       </Link>
+
+      {!loading && listings?.length > 0 && (
+        <>
+          <p className='listingText'> Your Listings </p>
+          <ul className='listingsList'>
+          {listings.map((listing)=>(
+            <ListingItem listing={listing.data}
+            key={listing.id}
+            id={listing.id}
+            onDelete={()=>onDelete(listing.id)}
+            onEdit={()=>onEdit(listing.id)}
+
+
+            />
+          ))}
+          
+          </ul>
+        </>
+      ) }
     </main>
 
     </div>
